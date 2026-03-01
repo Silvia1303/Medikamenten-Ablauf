@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Medikamenten-Ablaufkontrolle</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #1a1d23;
+  --text-muted: #6b7280;
+  --border: #e2e5ea;
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-border: #fecaca;
+  --yellow: #d97706;
+  --yellow-bg: #fffbeb;
+  --yellow-border: #fde68a;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --green-border: #bbf7d0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: white;
+  padding: 20px 16px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(37,99,235,0.3);
+}
+
+.header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.header-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.header-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-btn:hover { background: rgba(255,255,255,0.25); }
+.header-btn.primary-btn { background: rgba(255,255,255,0.95); color: var(--primary); font-weight: 600; }
+.header-btn.primary-btn:hover { background: white; }
+
+/* Alert Banner */
+.alert-banner {
+  background: var(--red-bg);
+  border-bottom: 2px solid var(--red-border);
+  padding: 12px 16px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.alert-banner.show { display: flex; }
+
+.alert-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--red);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.alert-text {
+  font-size: 0.85rem;
+  color: var(--red);
+  font-weight: 600;
+}
+
+.alert-text span { font-weight: 400; }
+
+/* Tabs / Filter */
+.filter-bar {
+  padding: 12px 16px;
+  overflow-x: auto;
+  display: flex;
+  gap: 6px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  color: var(--text-muted);
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.filter-chip .chip-count {
+  background: rgba(0,0,0,0.1);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  margin-left: 4px;
+}
+
+.filter-chip.active .chip-count { background: rgba(255,255,255,0.25); }
+
+/* Search */
+.search-bar {
+  padding: 0 16px 12px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus { border-color: var(--primary); }
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stats-bar::-webkit-scrollbar { display: none; }
+
+.stat-card {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.stat-card:active { transform: scale(0.97); }
+
+.stat-card.red { background: var(--red-bg); border: 1.5px solid var(--red-border); }
+.stat-card.yellow { background: var(--yellow-bg); border: 1.5px solid var(--yellow-border); }
+.stat-card.green { background: var(--green-bg); border: 1.5px solid var(--green-border); }
+
+.stat-number {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.stat-card.red .stat-number { color: var(--red); }
+.stat-card.yellow .stat-number { color: var(--yellow); }
+.stat-card.green .stat-number { color: var(--green); }
+
+.stat-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Medication List */
+.med-list {
+  padding: 0 16px 100px;
+}
+
+.med-group-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 0 6px;
+}
+
+.med-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+}
+
+.med-card:active { transform: scale(0.98); }
+.med-card.status-red { border-left-color: var(--red); }
+.med-card.status-yellow { border-left-color: var(--yellow); }
+.med-card.status-green { border-left-color: var(--green); }
+
+.med-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.med-status-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(220,38,38,0.4); }
+.med-status-dot.yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(217,119,6,0.3); }
+.med-status-dot.green { background: var(--green); }
+
+.med-info { flex: 1; min-width: 0; }
+
+.med-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.med-details {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.med-location {
+  background: #f3f4f6;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.med-expiry {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.med-expiry.red { color: var(--red); }
+.med-expiry.yellow { color: var(--yellow); }
+.med-expiry.green { color: var(--green); }
+
+.med-expiry-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.empty-state h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.empty-state p {
+  font-size: 0.85rem;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-overlay.show { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal {
+  background: var(--card);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  border-radius: 16px 16px 0 0;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 10;
+}
+
+.modal-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: #f3f4f6;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.modal-body { padding: 16px; }
+
+.form-group { margin-bottom: 14px; }
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+.form-input:focus, .form-select:focus { border-color: var(--primary); }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.btn-danger {
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1.5px solid var(--red-border);
+}
+
+.btn-danger:hover { background: #fee2e2; }
+
+/* Detail modal */
+.detail-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.detail-label { color: var(--text-muted); }
+.detail-value { font-weight: 600; text-align: right; }
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Export/Import Modal */
+.export-area {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-family: monospace;
+  color: var(--text);
+  resize: vertical;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1d23;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Reminder filter highlight */
+.filter-active-info {
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+.filter-active-info.show { display: flex; }
+.clear-filter {
+  background: var(--primary-light);
+  border: none;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Responsive desktop */
+@media (min-width: 600px) {
+  .header { padding: 20px 24px 16px; }
+  .filter-bar, .search-bar, .stats-bar, .med-list { padding-left: 24px; padding-right: 24px; }
+  .med-list { max-width: 700px; margin: 0 auto; }
+  .modal { border-radius: 16px; margin: auto; max-height: 85vh; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💊 Medikamenten-Ablaufkontrolle</h1>
+  <div class="header-subtitle">Ordination – Ablaufdaten im Überblick</div>
+  <div class="header-actions">
+    <button class="header-btn primary-btn" onclick="openAddModal()">＋ Neu</button>
+    <button class="header-btn" onclick="openExportModal()">⇄ Backup</button>
+    <button class="header-btn" onclick="showReminder()">🔔 Erinnerung</button>
+  </div>
+</div>
+
+<div class="alert-banner" id="alertBanner" onclick="filterByStatus('urgent')">
+  <div class="alert-icon" id="alertCount">0</div>
+  <div class="alert-text">
+    <span id="alertText">Medikamente benötigen Aufmerksamkeit</span>
+  </div>
+</div>
+
+<div class="filter-bar" id="filterBar">
+  <button class="filter-chip active" data-filter="alle" onclick="setFilter('alle')">Alle</button>
+  <button class="filter-chip" data-filter="Labor" onclick="setFilter('Labor')">Labor</button>
+  <button class="filter-chip" data-filter="Verbandsraum" onclick="setFilter('Verbandsraum')">Verbandsraum</button>
+  <button class="filter-chip" data-filter="Ordination 1" onclick="setFilter('Ordination 1')">Ordi 1</button>
+  <button class="filter-chip" data-filter="Ordination 2" onclick="setFilter('Ordination 2')">Ordi 2</button>
+  <button class="filter-chip" data-filter="Notfallraum" onclick="setFilter('Notfallraum')">Notfallraum</button>
+  <button class="filter-chip" data-filter="Notarzttasche" onclick="setFilter('Notarzttasche')">Notarzttasche</button>
+  <button class="filter-chip" data-filter="Visitentasche" onclick="setFilter('Visitentasche')">Visitentasche</button>
+</div>
+
+<div class="filter-active-info" id="filterInfo">
+  <span id="filterInfoText"></span>
+  <button class="clear-filter" onclick="clearStatusFilter()">✕ Filter aufheben</button>
+</div>
+
+<div class="search-bar">
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Medikament suchen..." oninput="renderList()">
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card red" onclick="filterByStatus('red')">
+    <div class="stat-number" id="statRed">0</div>
+    <div class="stat-label">Abgelaufen / &lt;1 Mt.</div>
+  </div>
+  <div class="stat-card yellow" onclick="filterByStatus('yellow')">
+    <div class="stat-number" id="statYellow">0</div>
+    <div class="stat-label">1–3 Monate</div>
+  </div>
+  <div class="stat-card green" onclick="filterByStatus('green')">
+    <div class="stat-number" id="statGreen">0</div>
+    <div class="stat-label">&gt; 3 Monate</div>
+  </div>
+</div>
+
+<div class="med-list" id="medList"></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="addModalTitle">Medikament hinzufügen</span>
+      <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Medikamentenname *</label>
+        <input type="text" class="form-input" id="medName" placeholder="z.B. Adrenalin 1mg Ampulle">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ablaufdatum *</label>
+          <input type="month" class="form-input" id="medExpiry">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Menge</label>
+          <input type="text" class="form-input" id="medQty" placeholder="z.B. 3 Stk.">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Standort *</label>
+        <select class="form-select" id="medLocation">
+          <option value="">Bitte wählen...</option>
+          <option value="Labor">Labor</option>
+          <option value="Verbandsraum">Verbandsraum</option>
+          <option value="Ordination 1">Ordination 1</option>
+          <option value="Ordination 2">Ordination 2</option>
+          <option value="Notfallraum">Notfallraum</option>
+          <option value="Notarzttasche">Notarzttasche</option>
+          <option value="Visitentasche">Visitentasche</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Chargennummer (optional)</label>
+        <input type="text" class="form-input" id="medBatch" placeholder="LOT / Ch.-B.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notiz (optional)</label>
+        <input type="text" class="form-input" id="medNote" placeholder="z.B. Kühlschrank, Schublade 3">
+      </div>
+      <input type="hidden" id="editId" value="">
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="closeModal('addModal')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="saveMed()">Speichern</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="detailTitle">Details</span>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Export/Import Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Backup & Wiederherstellung</span>
+      <button class="modal-close" onclick="closeModal('exportModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Daten exportieren (Backup)</label>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;">Kopiere diesen Text und speichere ihn sicher ab.</p>
+        <textarea class="export-area" id="exportData" readonly></textarea>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn btn-primary" onclick="copyExport()">📋 Kopieren</button>
+          <button class="btn btn-secondary" onclick="downloadExport()">💾 Herunterladen</button>
+        </div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+      <div class="form-group">
+        <label class="form-label">Daten importieren (Wiederherstellen)</label>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;">Füge ein vorheriges Backup ein und klicke Importieren.</p>
+        <textarea class="export-area" id="importData" placeholder="Backup-Daten hier einfügen..."></textarea>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn btn-secondary" onclick="loadImportFile()">📁 Datei laden</button>
+          <button class="btn btn-danger" onclick="importData()">⬆ Importieren</button>
+        </div>
+        <input type="file" id="importFile" accept=".json,.txt" style="display:none" onchange="handleFileImport(event)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reminder Modal -->
+<div class="modal-overlay" id="reminderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔔 Erinnerungs-Übersicht</span>
+      <button class="modal-close" onclick="closeModal('reminderModal')">✕</button>
+    </div>
+    <div class="modal-body" id="reminderBody"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const LOCATIONS = ['Labor','Verbandsraum','Ordination 1','Ordination 2','Notfallraum','Notarzttasche','Visitentasche'];
+let meds = [];
+let currentFilter = 'alle';
+let statusFilter = null;
+
+function loadData() {
+  try {
+    const d = localStorage.getItem('med_expiry_data');
+    meds = d ? JSON.parse(d) : [];
+  } catch(e) { meds = []; }
+}
+
+function saveData() {
+  localStorage.setItem('med_expiry_data', JSON.stringify(meds));
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+}
+
+// ===================== STATUS CALCULATION =====================
+function getStatus(expiryStr) {
+  const now = new Date();
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const parts = expiryStr.split('-');
+  const expiryDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1);
+  
+  const diffMonths = (expiryDate.getFullYear() - currentMonth.getFullYear()) * 12 
+                     + (expiryDate.getMonth() - currentMonth.getMonth());
+  
+  if (diffMonths < 1) return 'red';
+  if (diffMonths <= 3) return 'yellow';
+  return 'green';
+}
+
+function getDaysUntilExpiry(expiryStr) {
+  const parts = expiryStr.split('-');
+  // End of the expiry month
+  const year = parseInt(parts[0]);
+  const month = parseInt(parts[1]);
+  const expiryDate = new Date(year, month, 0); // last day of month
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  return Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+}
+
+function formatExpiry(expiryStr) {
+  const parts = expiryStr.split('-');
+  const months = ['Jän','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return months[parseInt(parts[1])-1] + ' ' + parts[0];
+}
+
+function formatRelative(expiryStr) {
+  const days = getDaysUntilExpiry(expiryStr);
+  if (days < 0) return `${Math.abs(days)} Tage abgelaufen`;
+  if (days === 0) return 'Läuft heute ab';
+  if (days <= 30) return `noch ${days} Tage`;
+  const months = Math.floor(days / 30);
+  if (months <= 12) return `noch ~${months} ${months===1?'Monat':'Monate'}`;
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  return rem > 0 ? `noch ~${years}J ${rem}Mt.` : `noch ~${years} ${years===1?'Jahr':'Jahre'}`;
+}
+
+// ===================== RENDERING =====================
+function renderList() {
+  const list = document.getElementById('medList');
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  
+  let filtered = [...meds];
+  
+  // Location filter
+  if (currentFilter !== 'alle') {
+    filtered = filtered.filter(m => m.location === currentFilter);
+  }
+  
+  // Status filter
+  if (statusFilter) {
+    if (statusFilter === 'urgent') {
+      filtered = filtered.filter(m => getStatus(m.expiry) === 'red');
+    } else {
+      filtered = filtered.filter(m => getStatus(m.expiry) === statusFilter);
+    }
+  }
+  
+  // Search
+  if (search) {
+    filtered = filtered.filter(m => 
+      m.name.toLowerCase().includes(search) || 
+      m.location.toLowerCase().includes(search) ||
+      (m.batch && m.batch.toLowerCase().includes(search)) ||
+      (m.note && m.note.toLowerCase().includes(search))
+    );
+  }
+  
+  // Sort by expiry date ascending
+  filtered.sort((a, b) => a.expiry.localeCompare(b.expiry));
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${meds.length === 0 ? '💊' : '🔍'}</div>
+        <h3>${meds.length === 0 ? 'Noch keine Medikamente' : 'Keine Treffer'}</h3>
+        <p>${meds.length === 0 ? 'Tippe auf „＋ Neu" um das erste Medikament hinzuzufügen.' : 'Versuch einen anderen Suchbegriff oder Filter.'}</p>
+      </div>`;
+    updateStats();
+    return;
+  }
+  
+  // Group by status
+  let html = '';
+  const groups = [
+    { key: 'red', label: '🔴 Abgelaufen / Dringend (< 1 Monat)' },
+    { key: 'yellow', label: '🟡 Bald ablaufend (1–3 Monate)' },
+    { key: 'green', label: '🟢 In Ordnung (> 3 Monate)' }
+  ];
+  
+  for (const group of groups) {
+    const items = filtered.filter(m => getStatus(m.expiry) === group.key);
+    if (items.length === 0) continue;
+    
+    html += `<div class="med-group-title">${group.label}</div>`;
+    for (const med of items) {
+      const status = getStatus(med.expiry);
+      html += `
+        <div class="med-card status-${status}" onclick="openDetail('${med.id}')">
+          <div class="med-status-dot ${status}"></div>
+          <div class="med-info">
+            <div class="med-name">${escHtml(med.name)}</div>
+            <div class="med-details">
+              <span class="med-location">${escHtml(med.location)}</span>
+              ${med.qty ? `<span>${escHtml(med.qty)}</span>` : ''}
+            </div>
+          </div>
+          <div class="med-expiry ${status}">
+            ${formatExpiry(med.expiry)}
+            <div class="med-expiry-sub">${formatRelative(med.expiry)}</div>
+          </div>
+        </div>`;
+    }
+  }
+  
+  list.innerHTML = html;
+  updateStats();
+}
+
+function updateStats() {
+  let reds = 0, yellows = 0, greens = 0;
+  for (const m of meds) {
+    const s = getStatus(m.expiry);
+    if (s === 'red') reds++;
+    else if (s === 'yellow') yellows++;
+    else greens++;
+  }
+  document.getElementById('statRed').textContent = reds;
+  document.getElementById('statYellow').textContent = yellows;
+  document.getElementById('statGreen').textContent = greens;
+  
+  // Alert banner
+  const banner = document.getElementById('alertBanner');
+  const alertCount = document.getElementById('alertCount');
+  const alertText = document.getElementById('alertText');
+  
+  if (reds > 0) {
+    banner.classList.add('show');
+    alertCount.textContent = reds;
+    alertText.innerHTML = `<b>${reds} Medikament${reds>1?'e':''}</b> <span>abgelaufen oder läuft in < 1 Monat ab!</span>`;
+  } else {
+    banner.classList.remove('show');
+  }
+  
+  // Update filter chip counts
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    const f = chip.dataset.filter;
+    let count;
+    if (f === 'alle') {
+      count = meds.length;
+    } else {
+      count = meds.filter(m => m.location === f).length;
+    }
+    const existing = chip.querySelector('.chip-count');
+    if (existing) existing.remove();
+    if (count > 0) {
+      chip.insertAdjacentHTML('beforeend', `<span class="chip-count">${count}</span>`);
+    }
+  });
+}
+
+// ===================== FILTERS =====================
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === f);
+  });
+  renderList();
+}
+
+function filterByStatus(status) {
+  statusFilter = status;
+  const info = document.getElementById('filterInfo');
+  const text = document.getElementById('filterInfoText');
+  const labels = { red: '🔴 Abgelaufen / Dringend', yellow: '🟡 Bald ablaufend', green: '🟢 In Ordnung', urgent: '🔴 Dringend' };
+  text.textContent = 'Filter: ' + (labels[status] || status);
+  info.classList.add('show');
+  renderList();
+}
+
+function clearStatusFilter() {
+  statusFilter = null;
+  document.getElementById('filterInfo').classList.remove('show');
+  renderList();
+}
+
+// ===================== ADD / EDIT =====================
+function openAddModal(id) {
+  const modal = document.getElementById('addModal');
+  const title = document.getElementById('addModalTitle');
+  
+  if (id) {
+    const med = meds.find(m => m.id === id);
+    if (!med) return;
+    title.textContent = 'Medikament bearbeiten';
+    document.getElementById('medName').value = med.name;
+    document.getElementById('medExpiry').value = med.expiry;
+    document.getElementById('medQty').value = med.qty || '';
+    document.getElementById('medLocation').value = med.location;
+    document.getElementById('medBatch').value = med.batch || '';
+    document.getElementById('medNote').value = med.note || '';
+    document.getElementById('editId').value = id;
+  } else {
+    title.textContent = 'Medikament hinzufügen';
+    document.getElementById('medName').value = '';
+    document.getElementById('medExpiry').value = '';
+    document.getElementById('medQty').value = '';
+    document.getElementById('medLocation').value = '';
+    document.getElementById('medBatch').value = '';
+    document.getElementById('medNote').value = '';
+    document.getElementById('editId').value = '';
+  }
+  
+  modal.classList.add('show');
+  if (!id) setTimeout(() => document.getElementById('medName').focus(), 300);
+}
+
+function saveMed() {
+  const name = document.getElementById('medName').value.trim();
+  const expiry = document.getElementById('medExpiry').value;
+  const location = document.getElementById('medLocation').value;
+  const qty = document.getElementById('medQty').value.trim();
+  const batch = document.getElementById('medBatch').value.trim();
+  const note = document.getElementById('medNote').value.trim();
+  const editId = document.getElementById('editId').value;
+  
+  if (!name || !expiry || !location) {
+    showToast('Bitte Name, Ablaufdatum und Standort ausfüllen');
+    return;
+  }
+  
+  if (editId) {
+    const idx = meds.findIndex(m => m.id === editId);
+    if (idx >= 0) {
+      meds[idx] = { ...meds[idx], name, expiry, location, qty, batch, note };
+    }
+    showToast('✓ Medikament aktualisiert');
+  } else {
+    meds.push({ id: generateId(), name, expiry, location, qty, batch, note, addedAt: new Date().toISOString() });
+    showToast('✓ Medikament hinzugefügt');
+  }
+  
+  saveData();
+  closeModal('addModal');
+  renderList();
+}
+
+function deleteMed(id) {
+  const med = meds.find(m => m.id === id);
+  if (!med) return;
+  if (!confirm(`"${med.name}" wirklich löschen?`)) return;
+  meds = meds.filter(m => m.id !== id);
+  saveData();
+  closeModal('detailModal');
+  renderList();
+  showToast('✓ Gelöscht');
+}
+
+function markReplaced(id) {
+  const med = meds.find(m => m.id === id);
+  if (!med) return;
+  closeModal('detailModal');
+  // Open add modal pre-filled with same info but empty date
+  setTimeout(() => {
+    openAddModal();
+    document.getElementById('medName').value = med.name;
+    document.getElementById('medLocation').value = med.location;
+    document.getElementById('medQty').value = med.qty || '';
+    document.getElementById('medBatch').value = '';
+    document.getElementById('medNote').value = med.note || '';
+    // Remove old entry
+    meds = meds.filter(m => m.id !== id);
+    saveData();
+    showToast('Altes Medikament entfernt – bitte neues Datum eintragen');
+  }, 350);
+}
+
+// ===================== DETAIL VIEW =====================
+function openDetail(id) {
+  const med = meds.find(m => m.id === id);
+  if (!med) return;
+  
+  const status = getStatus(med.expiry);
+  const statusLabel = { red: '🔴 Dringend', yellow: '🟡 Bald ablaufend', green: '🟢 In Ordnung' };
+  
+  document.getElementById('detailTitle').textContent = med.name;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-field">
+      <span class="detail-label">Status</span>
+      <span class="detail-value">${statusLabel[status]}</span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label">Ablaufdatum</span>
+      <span class="detail-value">${formatExpiry(med.expiry)} (${formatRelative(med.expiry)})</span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label">Standort</span>
+      <span class="detail-value">${escHtml(med.location)}</span>
+    </div>
+    ${med.qty ? `<div class="detail-field"><span class="detail-label">Menge</span><span class="detail-value">${escHtml(med.qty)}</span></div>` : ''}
+    ${med.batch ? `<div class="detail-field"><span class="detail-label">Charge</span><span class="detail-value">${escHtml(med.batch)}</span></div>` : ''}
+    ${med.note ? `<div class="detail-field"><span class="detail-label">Notiz</span><span class="detail-value">${escHtml(med.note)}</span></div>` : ''}
+    <div class="detail-actions">
+      <button class="btn btn-primary" onclick="closeModal('detailModal');setTimeout(()=>openAddModal('${med.id}'),300)">✏️ Bearbeiten</button>
+      <button class="btn btn-secondary" onclick="markReplaced('${med.id}')">🔄 Austauschen</button>
+      <button class="btn btn-danger" onclick="deleteMed('${med.id}')">🗑️</button>
+    </div>
+  `;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+// ===================== REMINDER =====================
+function showReminder() {
+  const body = document.getElementById('reminderBody');
+  
+  const now = new Date();
+  const in30 = meds.filter(m => {
+    const d = getDaysUntilExpiry(m.expiry);
+    return d <= 30;
+  }).sort((a,b) => a.expiry.localeCompare(b.expiry));
+  
+  const in90 = meds.filter(m => {
+    const d = getDaysUntilExpiry(m.expiry);
+    return d > 30 && d <= 90;
+  }).sort((a,b) => a.expiry.localeCompare(b.expiry));
+  
+  let html = '';
+  
+  if (in30.length === 0 && in90.length === 0) {
+    html = `
+      <div style="text-align:center;padding:30px;">
+        <div style="font-size:2.5rem;margin-bottom:10px;">✅</div>
+        <h3 style="font-family:'Outfit',sans-serif;">Alles in Ordnung!</h3>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-top:6px;">
+          Kein Medikament läuft in den nächsten 3 Monaten ab.
+        </p>
+      </div>`;
+  } else {
+    if (in30.length > 0) {
+      html += `<div style="font-weight:700;color:var(--red);margin-bottom:8px;font-size:0.9rem;">
+        🔴 Innerhalb von 30 Tagen (${in30.length})</div>`;
+      for (const m of in30) {
+        const days = getDaysUntilExpiry(m.expiry);
+        html += `<div class="med-card status-red" onclick="closeModal('reminderModal');setTimeout(()=>openDetail('${m.id}'),300)" style="margin-bottom:6px;">
+          <div class="med-status-dot red"></div>
+          <div class="med-info">
+            <div class="med-name">${escHtml(m.name)}</div>
+            <div class="med-details"><span class="med-location">${escHtml(m.location)}</span></div>
+          </div>
+          <div class="med-expiry red">${formatExpiry(m.expiry)}<div class="med-expiry-sub">${days < 0 ? Math.abs(days)+' Tage abgelaufen' : days+' Tage'}</div></div>
+        </div>`;
+      }
+    }
+    
+    if (in90.length > 0) {
+      html += `<div style="font-weight:700;color:var(--yellow);margin:16px 0 8px;font-size:0.9rem;">
+        🟡 Innerhalb von 1–3 Monaten (${in90.length})</div>`;
+      for (const m of in90) {
+        html += `<div class="med-card status-yellow" onclick="closeModal('reminderModal');setTimeout(()=>openDetail('${m.id}'),300)" style="margin-bottom:6px;">
+          <div class="med-status-dot yellow"></div>
+          <div class="med-info">
+            <div class="med-name">${escHtml(m.name)}</div>
+            <div class="med-details"><span class="med-location">${escHtml(m.location)}</span></div>
+          </div>
+          <div class="med-expiry yellow">${formatExpiry(m.expiry)}<div class="med-expiry-sub">${formatRelative(m.expiry)}</div></div>
+        </div>`;
+      }
+    }
+    
+    html += `<div style="margin-top:16px;padding:12px;background:#f0f7ff;border-radius:10px;font-size:0.82rem;color:var(--primary);">
+      💡 <b>Tipp:</b> Schau am besten 1× pro Woche in diese Übersicht. Tippe auf ein Medikament um es auszutauschen.
+    </div>`;
+  }
+  
+  body.innerHTML = html;
+  document.getElementById('reminderModal').classList.add('show');
+}
+
+// ===================== EXPORT / IMPORT =====================
+function openExportModal() {
+  document.getElementById('exportData').value = JSON.stringify(meds, null, 2);
+  document.getElementById('importData').value = '';
+  document.getElementById('exportModal').classList.add('show');
+}
+
+function copyExport() {
+  const el = document.getElementById('exportData');
+  el.select();
+  navigator.clipboard.writeText(el.value).then(() => showToast('✓ In Zwischenablage kopiert'));
+}
+
+function downloadExport() {
+  const data = document.getElementById('exportData').value;
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const today = new Date().toISOString().split('T')[0];
+  a.download = `medikamenten-backup-${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Datei heruntergeladen');
+}
+
+function loadImportFile() {
+  document.getElementById('importFile').click();
+}
+
+function handleFileImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('importData').value = e.target.result;
+    showToast('Datei geladen – klicke jetzt "Importieren"');
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function importData() {
+  const raw = document.getElementById('importData').value.trim();
+  if (!raw) { showToast('Keine Daten zum Importieren'); return; }
+  
+  try {
+    const imported = JSON.parse(raw);
+    if (!Array.isArray(imported)) throw new Error();
+    
+    const valid = imported.filter(m => m.name && m.expiry && m.location);
+    if (valid.length === 0) { showToast('Keine gültigen Daten gefunden'); return; }
+    
+    if (!confirm(`${valid.length} Medikamente importieren? Bestehende Daten werden ersetzt!`)) return;
+    
+    meds = valid.map(m => ({ ...m, id: m.id || generateId() }));
+    saveData();
+    closeModal('exportModal');
+    renderList();
+    showToast(`✓ ${valid.length} Medikamente importiert`);
+  } catch(e) {
+    showToast('Ungültiges Datenformat!');
+  }
+}
+
+// ===================== HELPERS =====================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// ===================== INIT =====================
+loadData();
+renderList();
+</script>
+</body>
+</html>
