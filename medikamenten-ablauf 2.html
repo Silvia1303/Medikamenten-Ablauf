@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Medikamenten-Ablaufkontrolle</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Med-Ablauf">
 <style>
 :root {
   --bg: #f0f2f5;
@@ -1241,6 +1244,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ===================== INIT =====================
 loadData();
 renderList();
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(function() { console.log('SW ok'); }).catch(function(err) { console.log('SW fail:', err); }); }
 </script>
 </body>
 </html>
